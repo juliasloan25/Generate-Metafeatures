@@ -98,7 +98,7 @@ feats = arr[:, 1:]
 # copy array of features to initialize result array
 res = deepcopy(feats)
 num_rows = np.shape(feats)[0]
-num_cols = np.shape(feats)[1]
+num_cols = np.shape(feats)[1] - 1 # remove 1 because of target
 
 # get number of metafeatures based on inputs
 num_metas = get_num_metas(num_cols, is_mul, is_div, is_add, is_sub)
