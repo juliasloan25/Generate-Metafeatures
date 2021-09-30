@@ -1,6 +1,6 @@
 # FILE: gen-metafeatures.py
 # AUTHOR: Julia Sloan
-# DATE: Jan. 2021
+# DATE: July 2020
 
 
 import pandas as pd
@@ -10,16 +10,13 @@ import scipy.special as sp
 import sys
 import os
 
-# constant to be used as result of division by 0
-BIG_M = int(sys.maxsize / 10**8)
-
 # determine the number of final metafeatures
 # note num_cols = num features
 def get_num_metas(num_cols, is_mul, is_div, is_add, is_sub):
     num_metas = 0
     if is_mul:
         num_metas += int(sp.comb(num_cols, 2) + num_cols)
-    if is_div: # account for both num/dem combinations, (i.e. a/b and b/a)
+    if is_div: # account for both num/dem combinations
         num_metas += 2 * int(sp.comb(num_cols, 2))
     if is_add:
         num_metas += int(sp.comb(num_cols, 2))
@@ -69,6 +66,10 @@ def make_in(res, in_name):
 
 
 
+
+# constant to be used as result of division by 0
+BIG_M = int(sys.maxsize / 10**8)
+
 # access command-line arguments (operations)
 file = sys.argv[1]
 ops = sys.argv[2:]
@@ -79,16 +80,16 @@ is_add = 'add' in ops
 is_sub = 'sub' in ops
 
 # get data from spreadsheet
-df = pd.read_csv(file)
+df = pd.read_excel(file)
 
 # create list of feature names, excluding the target (at column 0)
 names = list(df.columns.values)
 feat_names = names[1:]
 
-# convert dataframe to np array, isolate target values from features
+# convert dataframe to nparray, isolate years from features
 arr = df.to_numpy()
 
-# get first column (the target values)
+# get first column : the target values
 target_vals = np.array([arr[:, 0]]).T
 
 # get all features as a 2D np array
@@ -97,7 +98,7 @@ feats = arr[:, 1:]
 # copy array of features to initialize result array
 res = deepcopy(feats)
 num_rows = np.shape(feats)[0]
-num_cols = np.shape(feats)[1]# - 1 # remove 1 because of target col
+num_cols = np.shape(feats)[1] - 1 # remove 1 because of target
 
 # get number of metafeatures based on inputs
 num_metas = get_num_metas(num_cols, is_mul, is_div, is_add, is_sub)
@@ -156,8 +157,13 @@ res = np.hstack((target_vals, res))
 # add metafeatures to end of result array
 res = np.hstack((res, metas))
 
-# create .csv file with metafeatures
-make_csv(res, names, file[:-4] + '-METAFEATURES.csv')
+
+
+# USAGE: use this function to produce .csv file with metafeatures
+make_csv(res, names, file[:-5] + '-METAFEATURES.csv')
+
+# USAGE: use this function to produce .in file with metafeatures
+make_in(res, file[:-5] + "-METAFEATURES.in")
 
 # output message to tell user program was successful
 print("\nDone! Check directory of " + file + " for output")
